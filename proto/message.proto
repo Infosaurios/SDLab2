@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "github.com/v1c70r-dev/SDLab2/proto";
+
+message MessageUploadCombine{
+    string type_ = 1;
+    string id = 2;
+    string data = 3;
+}
+
+message confirmationFromNameNode{
+    bool validMsg = 1;
+}
+
+message MessageUploadToDataNode{
+    string type_ = 1;
+    string id = 2;
+    string data = 3;
+}
+
+message confirmationFromDataNode{
+    bool validMsg = 1;
+}
+
+service MessageService {
+    rpc CombineMsg (MessageUploadCombine) returns (confirmationFromNameNode);
+    rpc ToDataNodeMsg (MessageUploadToDataNode) returns (confirmationFromDataNode);
+}
+
+
