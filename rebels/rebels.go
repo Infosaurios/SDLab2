@@ -75,7 +75,7 @@ func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.Mess
 	if errDisp != nil {
 		panic("No se puede crear el mensaje en 'RebelsNameNode'" + err.Error())
 	}
-	fmt.Println(res)
+	fmt.Println(res.IdData, res)
 }
 
 func main() {

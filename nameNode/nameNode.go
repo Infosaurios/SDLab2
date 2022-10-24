@@ -137,6 +137,8 @@ func filterByCategory(category string) []string {
 // Send id to dataNode and receive the data <id:data>
 func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClient, err error) string {
 	//res -> Receive all the data <id:data> from the nameNode that correspond
+	fmt.Println("id_ (sendIdToDataNodeReceiveData)", id_)
+
 	res, errDisp := serviceClient.ReceiveIdSendDataToNameNode(
 		context.Background(),
 		&pb.IdSelected{
@@ -156,12 +158,15 @@ func toDataNode(category string) string {
 
 	for i := range id_dataNodeName_arr {
 
-		fmt.Println("i", i, "id_dataNodeName_arr", id_dataNodeName_arr)
+		//fmt.Println("i", i, "id_dataNodeName_arr", id_dataNodeName_arr) //delete this!!
 
 		ss := strings.Split(id_dataNodeName_arr[i], ":")
 		id := ss[0]
 		dtaNodeName := ss[1]
+		dtaNodeName = strings.ReplaceAll(dtaNodeName, " ", "")
 		dtaNode := dataNode{"", "", ""}
+
+		//fmt.Println("dtaNodeName", dtaNodeName, "strings.Compare(dtaNodeName, 'CREATOR')", strings.Compare(dtaNodeName, "CREATOR"))
 
 		if strings.Compare(dtaNodeName, "CREATOR") == 0 {
 			dtaNode = dataNode{name: "CREATOR", port: portDataNodeCreator, host: hostDataNodeCreator}
@@ -170,11 +175,14 @@ func toDataNode(category string) string {
 		} else if strings.Compare(dtaNodeName, "SYNTH") == 0 {
 			dtaNode = dataNode{"SYNTH", portDataNodeSynth, hostDataNodeSynth}
 		}
+
+		fmt.Println("dtaNode", dtaNode)
 		//Connect with the dataNode and Send it the id
 		connData := createConnWithDataNode(dtaNode)
 		//Send id to dataNode and receive one string with the format <id:data>
 		res := sendIdToDataNodeReceiveData(id, connData.sdn, connData.e)
 		//Acumulate the data from each dataNode
+		fmt.Println("id", id, "connData.sdn", connData.sdn, "connData.e", connData.e)
 		accumulator(res)
 	}
 
