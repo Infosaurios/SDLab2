@@ -56,26 +56,41 @@ var (
 	hostDataNodeSynth   = "localhost"
 	hostRebels          = "localhost"
 	hostCombine         = "localhost"
+
+	dataSendToRebels = []string{}
+	DATA             = []string{} //contains all the info in DATA.txt, and store new info <category:id:dataNode>
+	finishReadDATA   = false
 )
 
 // reciben y envían
+// Receive data from Combine, write in DATA.txt & DATA
 func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (*pb.ConfirmationFromNameNode, error) {
 	fmt.Println(msg)
 	sdn := selectRandomDataNode()
+	//Store new data in DATA.txt
 	writeInDataFile(msg.Type_, msg.Id, sdn, msg.Data)
+	//Store new data in DATA
+	newData := msg.Type_ + ":" + msg.Id + ":" + sdn.name
+	DATA = append(DATA, newData)
 	return &pb.ConfirmationFromNameNode{ValidMsg: true}, nil
 }
 
 // This function receive the category selected by the rebels, and send to them all the info requested
 func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.CategorySelected) (*pb.DataFromOneCategory, error) {
 	//Send the category selected by rebels to some dataNode
-	
-	//accumulator must wait for all data to be loaded before sending it to the rebels 
-	dataToUpload := accumulator(toDataNode(msg.Category))
+	for {
+		toDataNode(msg.Category)
+		if finishReadDATA {
+			break
+		}
+	}
+	dataToUpload := dataSendToRebels
+	finishReadDATA = false
 	return &pb.DataFromOneCategory{IdData: dataToUpload}, nil
 }
 
-func downloadDataToArray() []string {
+// downloadDataToArray
+func downloadDATA() []string {
 	var data []string
 
 	f, err := os.Open("DATA.txt")
@@ -96,9 +111,14 @@ func downloadDataToArray() []string {
 	return data
 }
 
-// This function returns an array that contains all <id:dataNodeName> from the data (<category:id:dataNode>) filtered by category in order (older to newer)
+/*
+	This function returns an array that contains all <id:dataNodeName>
+
+from the data (<category:id:dataNode>) filtered by category
+in order (older to newer)
+*/
 func filterByCategory(category string) []string {
-	data := downloadDataToArray()
+	data := DATA
 	var filtered []string
 	var ss []string
 	category_ := ""
@@ -115,7 +135,7 @@ func filterByCategory(category string) []string {
 }
 
 // Send id to dataNode and receive the data <id:data>
-func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClient, err error)  string  {
+func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClient, err error) string {
 	//res -> Receive all the data <id:data> from the nameNode that correspond
 	res, errDisp := serviceClient.ReceiveIdSendDataToNameNode(
 		context.Background(),
@@ -125,14 +145,13 @@ func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClie
 	if errDisp != nil {
 		panic("No se puede enviar la id hacia data node" + err.Error())
 	}
-	fmt.Println(res)
-
-	//change res *pb.InfoById to string
-	return res
+	//fmt.Println(res)
+	//dataSendToRebels = append(dataSendToRebels, res.String())
+	return res.String()
 }
 
 func toDataNode(category string) string {
-	id_dataNodeName_arr := filterByCategory(category)
+	id_dataNodeName_arr := filterByCategory(category) //[<cat id dataNode>]
 
 	for i := range id_dataNodeName_arr {
 
@@ -151,9 +170,14 @@ func toDataNode(category string) string {
 		//Connect with the dataNode and Send it the id
 		connData := createConnWithDataNode(dtaNode)
 		//Send id to dataNode and receive one string with the format <id:data>
-		return sendIdToDataNodeReceiveData(id, connData.sdn, connData.e)
+		res := sendIdToDataNodeReceiveData(id, connData.sdn, connData.e)
+		//Acumulate the data from each dataNode
+		accumulator(res)
 	}
 
+	finishReadDATA = true
+
+	return "Change this!!"
 }
 
 func selectRandomDataNode() dataNode {
@@ -171,13 +195,13 @@ func selectRandomDataNode() dataNode {
 	return dn[0]
 }
 
-func createDataFile() {
-	f, err := os.Create("DATA.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-}
+// func createDataFile() {
+// 	f, err := os.Create("DATA.txt")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer f.Close()
+// }
 
 func writeInDataFile(tipo_ string, id_ string, dataNode_ dataNode, data_ string) {
 	f, err := os.OpenFile("DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
@@ -186,7 +210,7 @@ func writeInDataFile(tipo_ string, id_ string, dataNode_ dataNode, data_ string)
 		return
 	}
 
-	newLine := tipo_ + " " + id_ + " " + dataNode_.name + "\n"
+	newLine := tipo_ + ":" + id_ + ":" + dataNode_.name + "\n"
 
 	_, err = fmt.Fprintln(f, newLine)
 	if err != nil {
@@ -219,20 +243,16 @@ func uploadMsgToDataNode(toUpload_ InfoToUploadToDataNode, serviceClient pb.Mess
 	fmt.Println(res)
 }
 
-
 /*
-This function accumulates all the strings <id:data> to send to the rebels
-accumulator must wait for all data to be loaded before sending it to the rebels 
+This function accumulates all the strings <category:id:data> to send to the rebels
+accumulator must wait for all data to be loaded before sending it to the rebels
 */
 
-go func accumulator(idData string) []string{
-	data := []string{}
-	data = append(data,idData)
-	
-	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels 
+func accumulator(dataFromEachDataNode string) {
+	dataSendToRebels = append(dataSendToRebels, dataFromEachDataNode)
+
+	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels
 	// how can i achieve that? ...
-	
-	return data
 }
 
 /******************Conexión cola síncrona (proto): send to dataNode******************/
@@ -261,7 +281,7 @@ func main() {
 	}()
 	time.Sleep(1 * time.Second)
 
-	createDataFile()
+	DATA = downloadDATA()
 
 	var forever chan struct{}
 	fmt.Printf(" [*] Waiting for messages. To exit press CTRL+C\n")
