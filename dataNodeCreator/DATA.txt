@@ -1,2 +1,3 @@
-militar 122 alguna info
+MILITAR:122:we need medicines
+LOGISTICA:123:something
 

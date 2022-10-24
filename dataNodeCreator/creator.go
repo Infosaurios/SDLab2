@@ -41,13 +41,13 @@ func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataN
 	return &pb.ConfirmationFromDataNode{ValidMsg: true}, nil
 }
 
-func createDataFile() {
-	f, err := os.Create("DATA.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-}
+// func createDataFile() {
+// 	f, err := os.Create("DATA.txt")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer f.Close()
+// }
 
 func writeInDataFile(tipo_ string, id_ string, data_ string) {
 	f, err := os.OpenFile("DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
@@ -56,7 +56,7 @@ func writeInDataFile(tipo_ string, id_ string, data_ string) {
 		return
 	}
 
-	newLine := tipo_ + " " + id_ + " " + data_ + "\n"
+	newLine := "\n" + tipo_ + ":" + id_ + ":" + data_ + "\n"
 
 	_, err = fmt.Fprintln(f, newLine)
 	if err != nil {
@@ -115,7 +115,7 @@ func main() {
 	}()
 	time.Sleep(1 * time.Second)
 
-	createDataFile() //delete?
+	//createDataFile() //delete?
 
 	var forever chan struct{}
 	fmt.Printf(" [*] Waiting for messages. To exit press CTRL+C\n")
