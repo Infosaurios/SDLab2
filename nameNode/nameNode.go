@@ -147,13 +147,16 @@ func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClie
 	}
 	//fmt.Println(res)
 	//dataSendToRebels = append(dataSendToRebels, res.String())
-	return res.String()
+	return res.IdData
 }
 
 func toDataNode(category string) string {
-	id_dataNodeName_arr := filterByCategory(category) //[<cat id dataNode>]
+	id_dataNodeName_arr := filterByCategory(category) //[<id:dataNode>]
+	fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
 
 	for i := range id_dataNodeName_arr {
+
+		fmt.Println("i", i, "id_dataNodeName_arr", id_dataNodeName_arr)
 
 		ss := strings.Split(id_dataNodeName_arr[i], ":")
 		id := ss[0]
@@ -210,7 +213,7 @@ func writeInDataFile(tipo_ string, id_ string, dataNode_ dataNode, data_ string)
 		return
 	}
 
-	newLine := tipo_ + ":" + id_ + ":" + dataNode_.name + "\n"
+	newLine := tipo_ + ":" + id_ + ":" + dataNode_.name
 
 	_, err = fmt.Fprintln(f, newLine)
 	if err != nil {
@@ -250,7 +253,7 @@ accumulator must wait for all data to be loaded before sending it to the rebels
 
 func accumulator(dataFromEachDataNode string) {
 	dataSendToRebels = append(dataSendToRebels, dataFromEachDataNode)
-
+	fmt.Println("dataSendToRebels", dataSendToRebels)
 	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels
 	// how can i achieve that? ...
 }

@@ -1,3 +1,6 @@
 MILITAR:122:we need medicines
 LOGISTICA:123:something
-
+MILITAR:124:something bad
+MILITAR:125:something good
+LOGISTICA:127:something bad
+LOGISTICA:128:something good

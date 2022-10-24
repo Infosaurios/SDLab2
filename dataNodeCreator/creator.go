@@ -56,7 +56,7 @@ func writeInDataFile(tipo_ string, id_ string, data_ string) {
 		return
 	}
 
-	newLine := "\n" + tipo_ + ":" + id_ + ":" + data_ + "\n"
+	newLine := tipo_ + ":" + id_ + ":" + data_
 
 	_, err = fmt.Fprintln(f, newLine)
 	if err != nil {
@@ -71,6 +71,7 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 	//nameNode retorna un string <id:data>.
 	// Para esto debe buscar en el archivo DATA.txt la fila con este id
 	idData := dataById(msg.Id)
+	fmt.Println("idData", idData)
 	return &pb.InfoById{IdData: idData}, nil
 }
 
