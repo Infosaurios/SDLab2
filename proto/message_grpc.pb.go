@@ -24,6 +24,9 @@ const _ = grpc.SupportPackageIsVersion7
 type MessageServiceClient interface {
 	CombineMsg(ctx context.Context, in *MessageUploadCombine, opts ...grpc.CallOption) (*ConfirmationFromNameNode, error)
 	ToDataNodeMsg(ctx context.Context, in *MessageUploadToDataNode, opts ...grpc.CallOption) (*ConfirmationFromDataNode, error)
+	ReceiveCategorySendDataToRebels(ctx context.Context, in *CategorySelected, opts ...grpc.CallOption) (*DataFromOneCategory, error)
+	// rpc NameNodeDataNode (idSelected) returns (infoById);
+	ReceiveIdSendDataToNameNode(ctx context.Context, in *IdSelected, opts ...grpc.CallOption) (*InfoById, error)
 }
 
 type messageServiceClient struct {
@@ -52,12 +55,33 @@ func (c *messageServiceClient) ToDataNodeMsg(ctx context.Context, in *MessageUpl
 	return out, nil
 }
 
+func (c *messageServiceClient) ReceiveCategorySendDataToRebels(ctx context.Context, in *CategorySelected, opts ...grpc.CallOption) (*DataFromOneCategory, error) {
+	out := new(DataFromOneCategory)
+	err := c.cc.Invoke(ctx, "/grpc.MessageService/ReceiveCategorySendDataToRebels", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) ReceiveIdSendDataToNameNode(ctx context.Context, in *IdSelected, opts ...grpc.CallOption) (*InfoById, error) {
+	out := new(InfoById)
+	err := c.cc.Invoke(ctx, "/grpc.MessageService/ReceiveIdSendDataToNameNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessageServiceServer is the server API for MessageService service.
 // All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility
 type MessageServiceServer interface {
 	CombineMsg(context.Context, *MessageUploadCombine) (*ConfirmationFromNameNode, error)
 	ToDataNodeMsg(context.Context, *MessageUploadToDataNode) (*ConfirmationFromDataNode, error)
+	ReceiveCategorySendDataToRebels(context.Context, *CategorySelected) (*DataFromOneCategory, error)
+	// rpc NameNodeDataNode (idSelected) returns (infoById);
+	ReceiveIdSendDataToNameNode(context.Context, *IdSelected) (*InfoById, error)
 	mustEmbedUnimplementedMessageServiceServer()
 }
 
@@ -70,6 +94,12 @@ func (UnimplementedMessageServiceServer) CombineMsg(context.Context, *MessageUpl
 }
 func (UnimplementedMessageServiceServer) ToDataNodeMsg(context.Context, *MessageUploadToDataNode) (*ConfirmationFromDataNode, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToDataNodeMsg not implemented")
+}
+func (UnimplementedMessageServiceServer) ReceiveCategorySendDataToRebels(context.Context, *CategorySelected) (*DataFromOneCategory, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReceiveCategorySendDataToRebels not implemented")
+}
+func (UnimplementedMessageServiceServer) ReceiveIdSendDataToNameNode(context.Context, *IdSelected) (*InfoById, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReceiveIdSendDataToNameNode not implemented")
 }
 func (UnimplementedMessageServiceServer) mustEmbedUnimplementedMessageServiceServer() {}
 
@@ -120,6 +150,42 @@ func _MessageService_ToDataNodeMsg_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_ReceiveCategorySendDataToRebels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CategorySelected)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).ReceiveCategorySendDataToRebels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.MessageService/ReceiveCategorySendDataToRebels",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).ReceiveCategorySendDataToRebels(ctx, req.(*CategorySelected))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_ReceiveIdSendDataToNameNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdSelected)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).ReceiveIdSendDataToNameNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.MessageService/ReceiveIdSendDataToNameNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).ReceiveIdSendDataToNameNode(ctx, req.(*IdSelected))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageService_ServiceDesc is the grpc.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +200,14 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ToDataNodeMsg",
 			Handler:    _MessageService_ToDataNodeMsg_Handler,
+		},
+		{
+			MethodName: "ReceiveCategorySendDataToRebels",
+			Handler:    _MessageService_ReceiveCategorySendDataToRebels_Handler,
+		},
+		{
+			MethodName: "ReceiveIdSendDataToNameNode",
+			Handler:    _MessageService_ReceiveIdSendDataToNameNode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

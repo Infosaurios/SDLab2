@@ -67,6 +67,7 @@ func MsgProcessing(msg string) InfoToUpload {
 	return toUpload
 }
 
+// envian y reciben
 func uploadMsg(toUpload_ InfoToUpload, serviceClient pb.MessageServiceClient, err error) {
 	//send info to nameNode
 	res, errDisp := serviceClient.CombineMsg(

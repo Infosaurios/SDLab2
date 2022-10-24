@@ -2,11 +2,13 @@ package main
 
 import (
 	pb "SDLab2/proto"
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -35,6 +37,11 @@ type InfoToUploadToDataNode struct {
 	data  string
 }
 
+type connDN struct {
+	sdn pb.MessageServiceClient
+	e   error
+}
+
 var (
 	portNameNode        = ":50051"
 	portDataNodeCreator = ":50053"
@@ -51,6 +58,7 @@ var (
 	hostCombine         = "localhost"
 )
 
+// reciben y envían
 func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (*pb.ConfirmationFromNameNode, error) {
 	fmt.Println(msg)
 	sdn := selectRandomDataNode()
@@ -58,11 +66,101 @@ func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (
 	return &pb.ConfirmationFromNameNode{ValidMsg: true}, nil
 }
 
+// This function receive the category selected by the rebels, and send to them all the info requested
+func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.CategorySelected) (*pb.DataFromOneCategory, error) {
+	//Send the category selected by rebels to some dataNode
+	
+	//accumulator must wait for all data to be loaded before sending it to the rebels 
+	dataToUpload := accumulator(toDataNode(msg.Category))
+	return &pb.DataFromOneCategory{IdData: dataToUpload}, nil
+}
+
+func downloadDataToArray() []string {
+	var data []string
+
+	f, err := os.Open("DATA.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		//fmt.Println(scanner.Text())
+		data = append(data, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return data
+}
+
+// This function returns an array that contains all <id:dataNodeName> from the data (<category:id:dataNode>) filtered by category in order (older to newer)
+func filterByCategory(category string) []string {
+	data := downloadDataToArray()
+	var filtered []string
+	var ss []string
+	category_ := ""
+
+	for i := range data {
+		ss = strings.Split(data[i], ":")
+		category_ = ss[0]
+		if strings.Contains(category_, category) {
+			filtered = append(filtered, ss[1]+":"+ss[2])
+		}
+	}
+
+	return filtered
+}
+
+// Send id to dataNode and receive the data <id:data>
+func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClient, err error)  string  {
+	//res -> Receive all the data <id:data> from the nameNode that correspond
+	res, errDisp := serviceClient.ReceiveIdSendDataToNameNode(
+		context.Background(),
+		&pb.IdSelected{
+			Id: id_,
+		})
+	if errDisp != nil {
+		panic("No se puede enviar la id hacia data node" + err.Error())
+	}
+	fmt.Println(res)
+
+	//change res *pb.InfoById to string
+	return res
+}
+
+func toDataNode(category string) string {
+	id_dataNodeName_arr := filterByCategory(category)
+
+	for i := range id_dataNodeName_arr {
+
+		ss := strings.Split(id_dataNodeName_arr[i], ":")
+		id := ss[0]
+		dtaNodeName := ss[1]
+		dtaNode := dataNode{"", "", ""}
+
+		if strings.Compare(dtaNodeName, "CREATOR") == 0 {
+			dtaNode = dataNode{name: "CREATOR", port: portDataNodeCreator, host: hostDataNodeCreator}
+		} else if strings.Compare(dtaNodeName, "GRUNT") == 0 {
+			dtaNode = dataNode{"GRUNT", portDataNodeGrunt, hostDataNodeGrunt}
+		} else if strings.Compare(dtaNodeName, "SYNTH") == 0 {
+			dtaNode = dataNode{"SYNTH", portDataNodeSynth, hostDataNodeSynth}
+		}
+		//Connect with the dataNode and Send it the id
+		connData := createConnWithDataNode(dtaNode)
+		//Send id to dataNode and receive one string with the format <id:data>
+		return sendIdToDataNodeReceiveData(id, connData.sdn, connData.e)
+	}
+
+}
+
 func selectRandomDataNode() dataNode {
 	dn := []dataNode{
-		{name: "creator", port: portDataNodeCreator, host: hostDataNodeCreator},
-		{name: "grunt", port: portDataNodeGrunt, host: hostDataNodeGrunt},
-		{name: "synth", port: portDataNodeSynth, host: hostDataNodeSynth},
+		{name: "CREATOR", port: portDataNodeCreator, host: hostDataNodeCreator},
+		{name: "GRUNT", port: portDataNodeGrunt, host: hostDataNodeGrunt},
+		{name: "SYNTH", port: portDataNodeSynth, host: hostDataNodeSynth},
 	}
 	// max := 3
 	// min := 0
@@ -102,7 +200,8 @@ func writeInDataFile(tipo_ string, id_ string, dataNode_ dataNode, data_ string)
 		data:  data_,
 	}
 
-	createConnWithDataNode(dataNode_, toUpload_)
+	var connData = createConnWithDataNode(dataNode_)
+	uploadMsgToDataNode(toUpload_, connData.sdn, connData.e)
 }
 
 func uploadMsgToDataNode(toUpload_ InfoToUploadToDataNode, serviceClient pb.MessageServiceClient, err error) {
@@ -120,16 +219,31 @@ func uploadMsgToDataNode(toUpload_ InfoToUploadToDataNode, serviceClient pb.Mess
 	fmt.Println(res)
 }
 
+
+/*
+This function accumulates all the strings <id:data> to send to the rebels
+accumulator must wait for all data to be loaded before sending it to the rebels 
+*/
+
+go func accumulator(idData string) []string{
+	data := []string{}
+	data = append(data,idData)
+	
+	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels 
+	// how can i achieve that? ...
+	
+	return data
+}
+
 /******************Conexión cola síncrona (proto): send to dataNode******************/
-func createConnWithDataNode(dtaNode dataNode, toUploadtoDN_ InfoToUploadToDataNode) {
+func createConnWithDataNode(dtaNode dataNode) connDN {
 	connS, err := grpc.Dial(dtaNode.host+dtaNode.port, grpc.WithInsecure())
 	if err != nil {
 		panic("No se pudo conectar con el servidor " + dtaNode.name + " " + err.Error())
 	}
 	serviceDataNode := pb.NewMessageServiceClient(connS)
-
-	uploadMsgToDataNode(toUploadtoDN_, serviceDataNode, err)
-
+	var connectData = connDN{sdn: serviceDataNode, e: err}
+	return connectData
 }
 
 func main() {

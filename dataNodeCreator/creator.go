@@ -2,11 +2,13 @@ package main
 
 import (
 	pb "SDLab2/proto"
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -63,6 +65,41 @@ func writeInDataFile(tipo_ string, id_ string, data_ string) {
 	}
 }
 
+// Receive the msg's id from nameNode and send one string with the format <id:data>
+func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSelected) (*pb.InfoById, error) {
+	//Crear funciones:
+	//nameNode retorna un string <id:data>.
+	// Para esto debe buscar en el archivo DATA.txt la fila con este id
+	idData := dataById(msg.Id)
+	return &pb.InfoById{IdData: idData}, nil
+}
+
+// Search in the file DATA.txt, the row that contains the id. Return <id : data> of that row
+func dataById(id string) string {
+	idData := ""
+	f, err := os.Open("DATA.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		//fmt.Println(scanner.Text())
+		//data = append(data, scanner.Text())
+		ss := strings.Split(scanner.Text(), ":")
+		id_ := ss[1]
+		if strings.Compare(id_, id) == 0 {
+			idData = ss[1] + ":" + ss[2] //<id : data>
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return idData
+}
+
 func main() {
 	/******************Conexión cola síncrona (proto): Listen ******************/
 	go func() {
@@ -78,7 +115,7 @@ func main() {
 	}()
 	time.Sleep(1 * time.Second)
 
-	createDataFile()
+	createDataFile() //delete?
 
 	var forever chan struct{}
 	fmt.Printf(" [*] Waiting for messages. To exit press CTRL+C\n")

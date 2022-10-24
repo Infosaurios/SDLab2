@@ -24,9 +24,34 @@ message confirmationFromDataNode{
     bool validMsg = 1;
 }
 
+//Rebels to nameNode 
+message CategorySelected{
+    string category = 1;
+}
+
+//nameNode to dataNode
+message idSelected{
+    string id = 1;
+}
+
+//dataNode to nameNode
+message infoById {
+    string id_data = 1;
+}
+
+//nameNode to Rebels 
+message dataFromOneCategory{
+    repeated string id_data = 1;
+}
+
+
 service MessageService {
     rpc CombineMsg (MessageUploadCombine) returns (confirmationFromNameNode);
     rpc ToDataNodeMsg (MessageUploadToDataNode) returns (confirmationFromDataNode);
+    
+    rpc ReceiveCategorySendDataToRebels (CategorySelected) returns (dataFromOneCategory);
+    //rpc NameNodeDataNode (idSelected) returns (infoById);
+    rpc ReceiveIdSendDataToNameNode (idSelected) returns (infoById);
 }
 
 
