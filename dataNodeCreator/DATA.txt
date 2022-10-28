@@ -1,6 +1,8 @@
-MILITAR:122:we need medicines
-LOGISTICA:123:something
-MILITAR:124:something bad
-MILITAR:125:something good
-LOGISTICA:127:something bad
-LOGISTICA:128:something good
+MILITAR:122:MILITAR_we need medicines
+LOGISTICA:123:LOGISTICA_something
+MILITAR:124:MILITAR_something bad
+MILITAR:125:MILITAR_something good
+LOGISTICA:127:LOGISTICA_something bad
+LOGISTICA:128:LOGISTICA_something good
+LOGISTICA:771:LOGISTICA_Falta papel confort
+LOGISTICA:770:LOGISTICA_FALTA TAMBIEN UN PAR DE ZAIAS

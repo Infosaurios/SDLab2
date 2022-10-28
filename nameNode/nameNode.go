@@ -78,6 +78,9 @@ func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (
 // This function receive the category selected by the rebels, and send to them all the info requested
 func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.CategorySelected) (*pb.DataFromOneCategory, error) {
 	//Send the category selected by rebels to some dataNode
+
+	fmt.Println("msg.Category", msg.Category)
+
 	for {
 		toDataNode(msg.Category)
 		if finishReadDATA {
@@ -85,8 +88,10 @@ func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.Ca
 		}
 	}
 	dataToUpload := dataSendToRebels
+	fmt.Println("definitive datasendtorebels", dataToUpload)
 	finishReadDATA = false
-	return &pb.DataFromOneCategory{IdData: dataToUpload}, nil
+	dataSendToRebels = []string{}
+	return &pb.DataFromOneCategory{IdData: dataToUpload}, nil //dataToUpload
 }
 
 // downloadDataToArray
@@ -126,7 +131,8 @@ func filterByCategory(category string) []string {
 	for i := range data {
 		ss = strings.Split(data[i], ":")
 		category_ = ss[0]
-		if strings.Contains(category_, category) {
+		fmt.Println("category_", category_, "category", category)
+		if strings.Compare(category_, category) == 0 { //strings.Contains(category_, category)
 			filtered = append(filtered, ss[1]+":"+ss[2])
 		}
 	}
@@ -137,7 +143,7 @@ func filterByCategory(category string) []string {
 // Send id to dataNode and receive the data <id:data>
 func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClient, err error) string {
 	//res -> Receive all the data <id:data> from the nameNode that correspond
-	fmt.Println("id_ (sendIdToDataNodeReceiveData)", id_)
+	//fmt.Println("id_ (sendIdToDataNodeReceiveData)", id_)
 
 	res, errDisp := serviceClient.ReceiveIdSendDataToNameNode(
 		context.Background(),
@@ -154,7 +160,7 @@ func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClie
 
 func toDataNode(category string) string {
 	id_dataNodeName_arr := filterByCategory(category) //[<id:dataNode>]
-	fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
+	//fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
 
 	for i := range id_dataNodeName_arr {
 
@@ -176,13 +182,13 @@ func toDataNode(category string) string {
 			dtaNode = dataNode{"SYNTH", portDataNodeSynth, hostDataNodeSynth}
 		}
 
-		fmt.Println("dtaNode", dtaNode)
+		//fmt.Println("dtaNode", dtaNode)
 		//Connect with the dataNode and Send it the id
 		connData := createConnWithDataNode(dtaNode)
 		//Send id to dataNode and receive one string with the format <id:data>
 		res := sendIdToDataNodeReceiveData(id, connData.sdn, connData.e)
 		//Acumulate the data from each dataNode
-		fmt.Println("id", id, "connData.sdn", connData.sdn, "connData.e", connData.e)
+		//fmt.Println("id", id, "connData.sdn", connData.sdn, "connData.e", connData.e)
 		accumulator(res)
 	}
 
@@ -261,7 +267,7 @@ accumulator must wait for all data to be loaded before sending it to the rebels
 
 func accumulator(dataFromEachDataNode string) {
 	dataSendToRebels = append(dataSendToRebels, dataFromEachDataNode)
-	fmt.Println("dataSendToRebels", dataSendToRebels)
+	fmt.Println("accumulator dataSendToRebels", dataSendToRebels)
 	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels
 	// how can i achieve that? ...
 }

@@ -28,12 +28,10 @@ var (
 
 func readUserData() string {
 	screenDialog := []string{
-		"Format accepted ->  Tipo:ID:Data",
-		"Enter the information to be sent to nameNode:",
+		"Enter the information to be sent to nameNode (Category:Id:Data):",
 	}
 	/*data to upload*/
 	fmt.Println(screenDialog[0])
-	fmt.Println(screenDialog[1])
 	reader := bufio.NewReader(os.Stdin)
 	msgToUpload, _ := reader.ReadString('\n') // Leer hasta el separador de salto de línea
 	return msgToUpload
@@ -63,7 +61,6 @@ func MsgProcessing(msg string) InfoToUpload {
 		id:    s[1],
 		data:  s[2],
 	}
-
 	return toUpload
 }
 

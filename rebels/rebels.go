@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	//"net"
@@ -51,14 +52,18 @@ func checkOptCorrectStructure(s string) bool {
 	return match
 }
 
-func categorySelected(opt string) string {
+func categorySelectedByRebels(opt string) string {
 	selectedOption := ""
+	opt = strings.ReplaceAll(opt, "\n", "")
 
-	if strings.Compare(opt, "1") == 0 {
+	opt_, err := strconv.Atoi(opt)
+	fmt.Println("error categorySelectedByRebels", err)
+
+	if opt_ == 1 {
 		selectedOption = "MILITAR"
-	} else if strings.Compare(opt, "2") == 0 {
+	} else if opt_ == 2 {
 		selectedOption = "FINANCIERA"
-	} else if strings.Compare(opt, "3") == 0 {
+	} else if opt_ == 3 {
 		selectedOption = "LOGISTICA"
 	}
 	return selectedOption
@@ -67,6 +72,8 @@ func categorySelected(opt string) string {
 // Send category to nameNode
 func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.MessageServiceClient, err error) {
 	//res -> Receive all the data of the category selected from nameNode
+	fmt.Println("catSelected", catSelected, "serviceClient", serviceClient, "err", err)
+
 	res, errDisp := serviceClient.ReceiveCategorySendDataToRebels(
 		context.Background(),
 		&pb.CategorySelected{
@@ -75,7 +82,12 @@ func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.Mess
 	if errDisp != nil {
 		panic("No se puede crear el mensaje en 'RebelsNameNode'" + err.Error())
 	}
-	fmt.Println(res.IdData, res)
+	fmt.Println("INFORMATION OF " + catSelected + " CATEGORY:")
+	//fmt.Println(res.IdData, res)
+	fmt.Println(res.IdData)
+
+	//cleanProtoList(serviceClient, err)
+
 }
 
 func main() {
@@ -90,7 +102,8 @@ func main() {
 	for {
 		optSelected := readUserData()
 		if checkOptCorrectStructure(optSelected) {
-			sendCategoryToNameNodeReceiveData(categorySelected(optSelected), serviceCombine, err)
+			sendCategoryToNameNodeReceiveData(categorySelectedByRebels(optSelected), serviceCombine, err)
+			//categorySelectedByRebels(optSelected)
 		}
 	}
 

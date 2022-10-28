@@ -70,7 +70,7 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 	//Crear funciones:
 	//nameNode retorna un string <id:data>.
 	// Para esto debe buscar en el archivo DATA.txt la fila con este id
-	fmt.Println("id_==msg.Id (ReceiveIdSendDataToNameNode)", msg.Id)
+	//fmt.Println("id_==msg.Id (ReceiveIdSendDataToNameNode)", msg.Id)
 	idData := dataById(msg.Id)
 	fmt.Println("idData", idData)
 	return &pb.InfoById{IdData: idData}, nil
@@ -90,7 +90,8 @@ func dataById(id string) string {
 		//fmt.Println(scanner.Text())
 		//data = append(data, scanner.Text())
 		ss := strings.Split(scanner.Text(), ":")
-		id_ := ss[1]
+		id_ := strings.ReplaceAll(ss[1], " ", "")
+		id := strings.ReplaceAll(id, " ", "")
 		if strings.Compare(id_, id) == 0 {
 			idData = ss[1] + ":" + ss[2] //<id : data>
 		}
