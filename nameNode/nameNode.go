@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"strings"
@@ -71,6 +72,7 @@ func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (
 		fmt.Println("is not repeated")
 		sdn := selectRandomDataNode()
 		//Store new data in DATA.txt
+		fmt.Println("sdn", sdn)
 		writeInDataFile(msg.Type_, msg.Id, sdn, msg.Data)
 		//Store new data in DATA
 		newData := msg.Type_ + ":" + msg.Id + ":" + sdn.name
@@ -178,7 +180,7 @@ func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClie
 
 func toDataNode(category string) string {
 	id_dataNodeName_arr := filterByCategory(category) //[<id:dataNode>]
-	//fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
+	fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
 
 	for i := range id_dataNodeName_arr {
 
@@ -190,17 +192,17 @@ func toDataNode(category string) string {
 		dtaNodeName = strings.ReplaceAll(dtaNodeName, " ", "")
 		dtaNode := dataNode{"", "", ""}
 
-		//fmt.Println("dtaNodeName", dtaNodeName, "strings.Compare(dtaNodeName, 'CREATOR')", strings.Compare(dtaNodeName, "CREATOR"))
+		fmt.Println("dtaNodeName", dtaNodeName, "strings.Compare(dtaNodeName, 'GRUNT')", strings.Compare(dtaNodeName, "GRUNT"))
 
 		if strings.Compare(dtaNodeName, "CREATOR") == 0 {
 			dtaNode = dataNode{name: "CREATOR", port: portDataNodeCreator, host: hostDataNodeCreator}
 		} else if strings.Compare(dtaNodeName, "GRUNT") == 0 {
-			dtaNode = dataNode{"GRUNT", portDataNodeGrunt, hostDataNodeGrunt}
+			dtaNode = dataNode{name: "GRUNT", port: portDataNodeGrunt, host: hostDataNodeGrunt}
 		} else if strings.Compare(dtaNodeName, "SYNTH") == 0 {
-			dtaNode = dataNode{"SYNTH", portDataNodeSynth, hostDataNodeSynth}
+			dtaNode = dataNode{name: "SYNTH", port: portDataNodeSynth, host: hostDataNodeSynth}
 		}
 
-		//fmt.Println("dtaNode", dtaNode)
+		fmt.Println("dtaNode", dtaNode)
 		//Connect with the dataNode and Send it the id
 		connData := createConnWithDataNode(dtaNode)
 		//Send id to dataNode and receive one string with the format <id:data>
@@ -221,13 +223,10 @@ func selectRandomDataNode() dataNode {
 		{name: "GRUNT", port: portDataNodeGrunt, host: hostDataNodeGrunt},
 		{name: "SYNTH", port: portDataNodeSynth, host: hostDataNodeSynth},
 	}
-	// max := 3
-	// min := 0
-	// random := rand.Intn(max-min) + min
-	// return dn[random]
-
-	///Delete this!///
-	return dn[0]
+	max := 3
+	min := 0
+	random := rand.Intn(max-min) + min
+	return dn[random]
 }
 
 // func createDataFile() {
