@@ -65,14 +65,32 @@ var (
 // reciben y envían
 // Receive data from Combine, write in DATA.txt & DATA
 func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (*pb.ConfirmationFromNameNode, error) {
-	fmt.Println(msg)
-	sdn := selectRandomDataNode()
-	//Store new data in DATA.txt
-	writeInDataFile(msg.Type_, msg.Id, sdn, msg.Data)
-	//Store new data in DATA
-	newData := msg.Type_ + ":" + msg.Id + ":" + sdn.name
-	DATA = append(DATA, newData)
-	return &pb.ConfirmationFromNameNode{ValidMsg: true}, nil
+	//fmt.Println(msg)
+	//check if the msg's id is not in DATA
+	if !checkRepeatedId(msg.Id) {
+		fmt.Println("is not repeated")
+		sdn := selectRandomDataNode()
+		//Store new data in DATA.txt
+		writeInDataFile(msg.Type_, msg.Id, sdn, msg.Data)
+		//Store new data in DATA
+		newData := msg.Type_ + ":" + msg.Id + ":" + sdn.name
+		DATA = append(DATA, newData)
+		return &pb.ConfirmationFromNameNode{ValidMsg: true}, nil
+	}
+	return &pb.ConfirmationFromNameNode{ValidMsg: false}, nil
+}
+
+// return true if the id is in DATA
+func checkRepeatedId(id string) bool {
+	println("id: ", id)
+	for i := range DATA {
+		ss := strings.Split(DATA[i], ":")
+		if strings.Compare(ss[1], id) == 0 {
+			//fmt.Println(id + " is repeated")
+			return true
+		}
+	}
+	return false
 }
 
 // This function receive the category selected by the rebels, and send to them all the info requested
@@ -131,7 +149,7 @@ func filterByCategory(category string) []string {
 	for i := range data {
 		ss = strings.Split(data[i], ":")
 		category_ = ss[0]
-		fmt.Println("category_", category_, "category", category)
+		//fmt.Println("category_", category_, "category", category)
 		if strings.Compare(category_, category) == 0 { //strings.Contains(category_, category)
 			filtered = append(filtered, ss[1]+":"+ss[2])
 		}
@@ -267,7 +285,7 @@ accumulator must wait for all data to be loaded before sending it to the rebels
 
 func accumulator(dataFromEachDataNode string) {
 	dataSendToRebels = append(dataSendToRebels, dataFromEachDataNode)
-	fmt.Println("accumulator dataSendToRebels", dataSendToRebels)
+	//fmt.Println("accumulator dataSendToRebels", dataSendToRebels)
 	//In this part, accumulator must wait for all data to be loaded before sending it to the rebels
 	// how can i achieve that? ...
 }

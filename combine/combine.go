@@ -57,15 +57,16 @@ func MsgProcessing(msg string) InfoToUpload {
 	s[2] = strings.TrimRight(s[2], "\t\n")
 
 	toUpload := InfoToUpload{
-		type_: s[0],
-		id:    s[1],
-		data:  s[2],
+		type_: strings.ToUpper(s[0]),
+		id:    strings.ToUpper(s[1]),
+		data:  strings.ToUpper(s[2]),
 	}
 	return toUpload
 }
 
 // envian y reciben
-func uploadMsg(toUpload_ InfoToUpload, serviceClient pb.MessageServiceClient, err error) {
+// return true if the msg is valid, false in other case (ex: repeated id)
+func uploadMsg(toUpload_ InfoToUpload, serviceClient pb.MessageServiceClient, err error) bool {
 	//send info to nameNode
 	res, errDisp := serviceClient.CombineMsg(
 		context.Background(),
@@ -77,7 +78,14 @@ func uploadMsg(toUpload_ InfoToUpload, serviceClient pb.MessageServiceClient, er
 	if errDisp != nil {
 		panic("No se puede crear el mensaje " + err.Error())
 	}
-	fmt.Println(res)
+
+	//if the id entered by user, is in nameNode's DATA.txt file, the msg is not delivered. The user must enter other id
+	//fmt.Println("mensage valido", res.ValidMsg)
+	if !res.ValidMsg {
+		fmt.Println("<<The id entered by user, is in nameNode's DATA.txt file. Please enter other id>>")
+		fmt.Println("")
+	}
+	return res.ValidMsg
 }
 
 func main() {

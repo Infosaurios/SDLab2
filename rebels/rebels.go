@@ -57,7 +57,9 @@ func categorySelectedByRebels(opt string) string {
 	opt = strings.ReplaceAll(opt, "\n", "")
 
 	opt_, err := strconv.Atoi(opt)
-	fmt.Println("error categorySelectedByRebels", err)
+	if err != nil {
+		fmt.Println("error categorySelectedByRebels", err)
+	}
 
 	if opt_ == 1 {
 		selectedOption = "MILITAR"
@@ -72,7 +74,7 @@ func categorySelectedByRebels(opt string) string {
 // Send category to nameNode
 func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.MessageServiceClient, err error) {
 	//res -> Receive all the data of the category selected from nameNode
-	fmt.Println("catSelected", catSelected, "serviceClient", serviceClient, "err", err)
+	//fmt.Println("catSelected", catSelected, "serviceClient", serviceClient, "err", err)
 
 	res, errDisp := serviceClient.ReceiveCategorySendDataToRebels(
 		context.Background(),
@@ -83,8 +85,12 @@ func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.Mess
 		panic("No se puede crear el mensaje en 'RebelsNameNode'" + err.Error())
 	}
 	fmt.Println("INFORMATION OF " + catSelected + " CATEGORY:")
-	//fmt.Println(res.IdData, res)
-	fmt.Println(res.IdData)
+
+	//fmt.Println(res.IdData)
+	for i := range res.IdData {
+		fmt.Println(res.IdData[i])
+	}
+	fmt.Println("")
 
 	//cleanProtoList(serviceClient, err)
 
