@@ -108,7 +108,7 @@ func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.Ca
 		}
 	}
 	dataToUpload := dataSendToRebels
-	fmt.Println("definitive datasendtorebels", dataToUpload)
+	//fmt.Println("definitive datasendtorebels", dataToUpload)
 	finishReadDATA = false
 	dataSendToRebels = []string{}
 	return &pb.DataFromOneCategory{IdData: dataToUpload}, nil //dataToUpload
@@ -192,7 +192,7 @@ func toDataNode(category string) string {
 		dtaNodeName = strings.ReplaceAll(dtaNodeName, " ", "")
 		dtaNode := dataNode{"", "", ""}
 
-		fmt.Println("dtaNodeName", dtaNodeName, "strings.Compare(dtaNodeName, 'GRUNT')", strings.Compare(dtaNodeName, "GRUNT"))
+		//fmt.Println("dtaNodeName", dtaNodeName, "strings.Compare(dtaNodeName, 'GRUNT')", strings.Compare(dtaNodeName, "GRUNT"))
 
 		if strings.Compare(dtaNodeName, "CREATOR") == 0 {
 			dtaNode = dataNode{name: "CREATOR", port: portDataNodeCreator, host: hostDataNodeCreator}
@@ -202,7 +202,7 @@ func toDataNode(category string) string {
 			dtaNode = dataNode{name: "SYNTH", port: portDataNodeSynth, host: hostDataNodeSynth}
 		}
 
-		fmt.Println("dtaNode", dtaNode)
+		//fmt.Println("dtaNode", dtaNode)
 		//Connect with the dataNode and Send it the id
 		connData := createConnWithDataNode(dtaNode)
 		//Send id to dataNode and receive one string with the format <id:data>
