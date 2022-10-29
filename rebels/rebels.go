@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -45,7 +44,13 @@ func readUserData() string {
 }
 
 func checkOptCorrectStructure(s string) bool {
-	match, _ := regexp.MatchString("^[1-3]", s)
+	s=strings.TrimSpace(s)
+	match:=false
+	if (s=="1" || s=="2" || s=="3"){
+		match=true
+	}else{
+		match=false
+	}
 	if !match {
 		fmt.Println("<< Debe ingresar uno de los sgtes números: {1,2,3} >>")
 	}
@@ -54,8 +59,7 @@ func checkOptCorrectStructure(s string) bool {
 
 func categorySelectedByRebels(opt string) string {
 	selectedOption := ""
-	opt = strings.ReplaceAll(opt, "\n", "")
-
+	opt = strings.TrimSpace(opt)
 	opt_, err := strconv.Atoi(opt)
 	if err != nil {
 		fmt.Println("error categorySelectedByRebels", err)

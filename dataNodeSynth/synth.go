@@ -50,7 +50,7 @@ func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataN
 // }
 
 func writeInDataFile(tipo_ string, id_ string, data_ string) {
-	f, err := os.OpenFile("DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("dataNodeSynth/DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -80,7 +80,7 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 // Search in the file DATA.txt, the row that contains the id. Return <id : data> of that row
 func dataById(id string) string {
 	idData := ""
-	f, err := os.Open("DATA.txt")
+	f, err := os.Open("dataNodeSynth/DATA.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

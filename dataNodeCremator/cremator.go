@@ -32,7 +32,7 @@ type dataNode struct {
 
 var (
 	portNameNode        = ":50051"
-	portDataNodeCreator = ":50053"
+	portDataNodeCremator = ":50053"
 )
 
 func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataNode) (*pb.ConfirmationFromDataNode, error) {
@@ -49,7 +49,7 @@ func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataN
 // }
 
 func writeInDataFile(tipo_ string, id_ string, data_ string) {
-	f, err := os.OpenFile("DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("dataNodeCremator/DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -79,7 +79,7 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 // Search in the file DATA.txt, the row that contains the id. Return <id : data> of that row
 func dataById(id string) string {
 	idData := ""
-	f, err := os.Open("DATA.txt")
+	f, err := os.Open("dataNodeCremator/DATA.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,14 +106,14 @@ func dataById(id string) string {
 func main() {
 	/******************Conexión cola síncrona (proto): Listen ******************/
 	go func() {
-		listener, err := net.Listen("tcp", portDataNodeCreator) //conexion sincrona escucha
+		listener, err := net.Listen("tcp", portDataNodeCremator) //conexion sincrona escucha
 		if err != nil {
-			panic("La conexion con dataNodeCreator no se pudo crear" + err.Error())
+			panic("La conexion con dataNodeCremator no se pudo crear" + err.Error())
 		}
 		grpcServer := grpc.NewServer()
 		pb.RegisterMessageServiceServer(grpcServer, &server{})
 		if err = grpcServer.Serve(listener); err != nil {
-			panic("El servidor dataNodeCreator no se pudo iniciar" + err.Error())
+			panic("El servidor dataNodeCremator no se pudo iniciar" + err.Error())
 		}
 	}()
 	time.Sleep(1 * time.Second)

@@ -118,7 +118,7 @@ func (s *server) ReceiveCategorySendDataToRebels(ctx context.Context, msg *pb.Ca
 func downloadDATA() []string {
 	var data []string
 
-	f, err := os.Open("DATA.txt")
+	f, err := os.Open("nameNode/DATA.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func selectRandomDataNode() dataNode {
 // }
 
 func writeInDataFile(tipo_ string, id_ string, dataNode_ dataNode, data_ string) {
-	f, err := os.OpenFile("DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("nameNode/DATA.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 		return
