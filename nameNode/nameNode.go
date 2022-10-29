@@ -180,8 +180,8 @@ func sendIdToDataNodeReceiveData(id_ string, serviceClient pb.MessageServiceClie
 
 func toDataNode(category string) string {
 	id_dataNodeName_arr := filterByCategory(category) //[<id:dataNode>]
-	fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
-
+	//fmt.Println("id_dataNodeName_arr", id_dataNodeName_arr)
+	fmt.Println("Solicitud de rebels recibida, mensaje enviado:", id_dataNodeName_arr)
 	for i := range id_dataNodeName_arr {
 
 		//fmt.Println("i", i, "id_dataNodeName_arr", id_dataNodeName_arr) //delete this!!

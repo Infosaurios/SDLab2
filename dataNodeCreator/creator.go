@@ -36,7 +36,6 @@ var (
 )
 
 func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataNode) (*pb.ConfirmationFromDataNode, error) {
-	fmt.Println(msg)
 	writeInDataFile(msg.Type_, msg.Id, msg.Data)
 	return &pb.ConfirmationFromDataNode{ValidMsg: true}, nil
 }
@@ -72,7 +71,8 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 	// Para esto debe buscar en el archivo DATA.txt la fila con este id
 	//fmt.Println("id_==msg.Id (ReceiveIdSendDataToNameNode)", msg.Id)
 	idData := dataById(msg.Id)
-	fmt.Println("idData", idData)
+	//fmt.Println("idData", idData)
+	fmt.Println("Solicitud de NameNode recibida, mensaje enviado: ", idData)
 	return &pb.InfoById{IdData: idData}, nil
 }
 

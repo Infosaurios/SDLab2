@@ -88,7 +88,8 @@ func sendCategoryToNameNodeReceiveData(catSelected string, serviceClient pb.Mess
 
 	//fmt.Println(res.IdData)
 	for i := range res.IdData {
-		fmt.Println(res.IdData[i])
+		ss := strings.Split(res.IdData[i], ":")
+		fmt.Println(ss[0] + " " + ss[1])
 	}
 	fmt.Println("")
 

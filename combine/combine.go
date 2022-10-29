@@ -84,6 +84,8 @@ func uploadMsg(toUpload_ InfoToUpload, serviceClient pb.MessageServiceClient, er
 	if !res.ValidMsg {
 		fmt.Println("<<The id entered by user, is in nameNode's DATA.txt file. Please enter other id>>")
 		fmt.Println("")
+	} else {
+		fmt.Println("Mensaje enviado Exitosamente")
 	}
 	return res.ValidMsg
 }
