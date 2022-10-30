@@ -40,7 +40,12 @@ func (s *server) ToDataNodeMsg(ctx context.Context, msg *pb.MessageUploadToDataN
 	writeInDataFile(msg.Type_, msg.Id, msg.Data)
 	return &pb.ConfirmationFromDataNode{ValidMsg: true}, nil
 }
-
+func (s *server) ReqInterruptionNodes(ctx context.Context, msg *pb.Interruption) (*pb.ConfirmInt, error) {
+	fmt.Println("Cerrando conexion...")
+	time.Sleep(1 * time.Second)
+	os.Exit(1)
+	return &pb.ConfirmInt{Res: "Se inicia cierre de conexion"}, nil
+}
 // func createDataFile() {
 // 	f, err := os.Create("DATA.txt")
 // 	if err != nil {

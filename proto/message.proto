@@ -43,12 +43,18 @@ message infoById {
 message dataFromOneCategory{
     repeated string id_data = 1;
 }
-
+message Interruption{
+    string adv =1;
+}
+message confirmInt{
+    string res=1;
+}
 
 service MessageService {
     rpc CombineMsg (MessageUploadCombine) returns (confirmationFromNameNode);
     rpc ToDataNodeMsg (MessageUploadToDataNode) returns (confirmationFromDataNode);
-    
+    rpc reqInterruption (Interruption) returns (confirmInt);
+    rpc reqInterruptionNodes (Interruption) returns (confirmInt);
     rpc ReceiveCategorySendDataToRebels (CategorySelected) returns (dataFromOneCategory);
     //rpc NameNodeDataNode (idSelected) returns (infoById);
     rpc ReceiveIdSendDataToNameNode (idSelected) returns (infoById);

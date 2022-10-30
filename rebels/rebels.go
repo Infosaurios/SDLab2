@@ -5,12 +5,14 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os/signal"
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 
 	//"net"
-	//"time"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -111,11 +113,32 @@ func main() {
 
 	/** main loop of the program*/
 	for {
-		optSelected := readUserData()
-		if checkOptCorrectStructure(optSelected) {
-			sendCategoryToNameNodeReceiveData(categorySelectedByRebels(optSelected), serviceCombine, err)
-			//categorySelectedByRebels(optSelected)
-		}
+		cancelChan := make(chan os.Signal, 1)
+		signal.Notify(cancelChan,os.Interrupt,syscall.SIGTERM)
+		
+			optSelected := readUserData()
+			if checkOptCorrectStructure(optSelected) {
+				sendCategoryToNameNodeReceiveData(categorySelectedByRebels(optSelected), serviceCombine, err)
+				//categorySelectedByRebels(optSelected)
+			}
+		
+		
+		go func() {
+			<-cancelChan
+			r,err:=serviceCombine.ReqInterruption(
+					context.Background(),
+					&pb.Interruption{
+						Adv:"cierre",
+					})
+			if err != nil {
+						
+					}
+			fmt.Println("Solicitando cierre de conexion...")
+			time.Sleep(1 * time.Second)
+			os.Exit(1)
+			fmt.Println(r)
+			
+		}()
 	}
 
 }

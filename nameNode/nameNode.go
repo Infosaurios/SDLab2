@@ -58,6 +58,7 @@ var (
 	hostRebels          = "localhost"
 	hostCombine         = "localhost"
 
+	nodelist= [3]string{hostDataNodeCreator+portDataNodeCreator,hostDataNodeGrunt+portDataNodeGrunt,hostDataNodeSynth+portDataNodeSynth}
 	dataSendToRebels = []string{}
 	DATA             = []string{} //contains all the info in DATA.txt, and store new info <category:id:dataNode>
 	finishReadDATA   = false
@@ -80,6 +81,30 @@ func (s *server) CombineMsg(ctx context.Context, msg *pb.MessageUploadCombine) (
 		return &pb.ConfirmationFromNameNode{ValidMsg: true}, nil
 	}
 	return &pb.ConfirmationFromNameNode{ValidMsg: false}, nil
+}
+func (s *server) ReqInterruption(ctx context.Context, msg *pb.Interruption) (*pb.ConfirmInt, error) {
+	fmt.Println("Se cierran los nodos...")
+	for _,node := range nodelist {
+		connI, err := grpc.Dial(node, grpc.WithInsecure())
+		if err != nil {
+			panic("No se pudo conectar con el servidor" + err.Error())
+		}
+		serviceInt := pb.NewMessageServiceClient(connI)
+		r,err:=serviceInt.ReqInterruptionNodes(
+			context.Background(),
+			&pb.Interruption{
+				Adv:"cierre",
+			})
+		if err != nil {
+				
+		}else{
+			fmt.Println(r)
+		}
+		
+	}
+	time.Sleep(1 * time.Second)
+	os.Exit(1)
+	return &pb.ConfirmInt{Res: "Se inicia cierre de conexion",},nil
 }
 
 // return true if the id is in DATA

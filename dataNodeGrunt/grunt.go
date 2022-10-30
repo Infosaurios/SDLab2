@@ -76,6 +76,12 @@ func (s *server) ReceiveIdSendDataToNameNode(ctx context.Context, msg *pb.IdSele
 	fmt.Println("Solicitud de NameNode recibida, mensaje enviado: ", idData)
 	return &pb.InfoById{IdData: idData}, nil
 }
+func (s *server) ReqInterruptionNodes(ctx context.Context, msg *pb.Interruption) (*pb.ConfirmInt, error) {
+	fmt.Println("Cerrando conexion...")
+	time.Sleep(1 * time.Second)
+	os.Exit(1)
+	return &pb.ConfirmInt{Res: "Se inicia cierre de conexion"}, nil
+}
 
 // Search in the file DATA.txt, the row that contains the id. Return <id : data> of that row
 func dataById(id string) string {
